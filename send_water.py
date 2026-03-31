@@ -23,7 +23,7 @@ from_number  = os.environ["FROM_WHATSAPP_NUMBER"]
 
 client = Client(account_sid, auth_token)
 
-for number in to_numbers:
+for number in to_number:
     message = client.messages.create(
         body=random.choice(messages),
         from_=from_number,
