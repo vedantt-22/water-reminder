@@ -23,10 +23,10 @@ from_number  = os.environ["FROM_WHATSAPP_NUMBER"]
 
 client = Client(account_sid, auth_token)
 
-message = client.messages.create(
-    body=random.choice(messages),
-    from_=from_number,
-    to=to_number
-)
-
-print(f"✅ Message sent! SID: {message.sid}")
+for number in to_numbers:
+    message = client.messages.create(
+        body=random.choice(messages),
+        from_=from_number,
+        to=number.strip()
+    )
+    print(f"✅ Message sent to {number}! SID: {message.sid}")
