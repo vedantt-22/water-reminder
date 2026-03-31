@@ -16,17 +16,26 @@ messages = [
     "💧 Plot twist: the headache you have? It's dehydration. Drink water, genius.",
 ]
 
+def format_whatsapp_number(number):
+    number = number.strip()
+    if not number.startswith("whatsapp:"):
+        number = "whatsapp:" + number
+    if not number.startswith("whatsapp:+"):
+        number = number.replace("whatsapp:", "whatsapp:+")
+    return number
+
 account_sid  = os.environ["TWILIO_ACCOUNT_SID"]
 auth_token   = os.environ["TWILIO_AUTH_TOKEN"]
-to_number    = os.environ["TO_WHATSAPP_NUMBER"]
-from_number  = os.environ["FROM_WHATSAPP_NUMBER"]
+to_numbers   = os.environ["TO_WHATSAPP_NUMBER"].split(",")
+from_number  = format_whatsapp_number(os.environ["FROM_WHATSAPP_NUMBER"])
 
 client = Client(account_sid, auth_token)
 
-for number in to_number:
+for number in to_numbers:
+    formatted = format_whatsapp_number(number)
     message = client.messages.create(
         body=random.choice(messages),
         from_=from_number,
-        to=number.strip()
+        to=formatted
     )
-    print(f"✅ Message sent to {number}! SID: {message.sid}")
+    print(f"✅ Message sent to {formatted}! SID: {message.sid}")
