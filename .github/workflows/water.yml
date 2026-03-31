@@ -1,0 +1,35 @@
+name: Drink Water Reminder
+
+on:
+  schedule:
+    - cron: '50 18 * * *'   # 12:20 AM IST (test)
+    - cron: '30 4 * * *'    # 10:00 AM IST
+    - cron: '30 6 * * *'    # 12:00 PM IST
+    - cron: '30 8 * * *'    # 02:00 PM IST
+    - cron: '30 10 * * *'   # 04:00 PM IST
+    - cron: '30 12 * * *'   # 06:00 PM IST
+    - cron: '30 14 * * *'   # 08:00 PM IST
+    - cron: '30 16 * * *'   # 10:00 PM IST
+  workflow_dispatch:
+
+jobs:
+  send-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Twilio
+        run: pip install twilio
+
+      - name: Send WhatsApp reminder
+        env:
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TO_WHATSAPP_NUMBER: ${{ secrets.TO_WHATSAPP_NUMBER }}
+          FROM_WHATSAPP_NUMBER: ${{ secrets.FROM_WHATSAPP_NUMBER }}
+        run: python send_water.py
