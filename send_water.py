@@ -1,6 +1,7 @@
 import os
 import random
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 messages = [
     "💧 Drink water. Your body is 60% water, not chai. Act accordingly.",
@@ -16,7 +17,7 @@ messages = [
     "💧 Plot twist: the headache you have? It's dehydration. Drink water, genius.",
 ]
 
-def format_whatsapp_number(number):
+def format_whatsapp_number(number: str) -> str:
     number = number.strip()
     if not number.startswith("whatsapp:"):
         number = "whatsapp:" + number
@@ -26,16 +27,28 @@ def format_whatsapp_number(number):
 
 account_sid  = os.environ["TWILIO_ACCOUNT_SID"]
 auth_token   = os.environ["TWILIO_AUTH_TOKEN"]
-to_numbers   = os.environ["TO_WHATSAPP_NUMBER"].split(",")
+to_numbers   = [n.strip() for n in os.environ["TO_WHATSAPP_NUMBER"].split(",") if n.strip()]
 from_number  = format_whatsapp_number(os.environ["FROM_WHATSAPP_NUMBER"])
 
 client = Client(account_sid, auth_token)
 
 for number in to_numbers:
     formatted = format_whatsapp_number(number)
-    message = client.messages.create(
-        body=random.choice(messages),
-        from_=from_number,
-        to=formatted
-    )
-    print(f"✅ Message sent to {formatted}! SID: {message.sid}")
+    try:
+        message = client.messages.create(
+            body=random.choice(messages),
+            from_=from_number,
+            to=formatted
+        )
+        print(f"✅ Message sent to {formatted}! SID: {message.sid}")
+
+    except TwilioRestException as e:
+        text = str(e)
+
+        # Your log shows: "HTTP 429 ... exceeded the 50 daily messages limit"
+        if "HTTP 429" in text or "daily messages limit" in text:
+            print(f"⚠️ Twilio daily limit reached; skipping remaining sends. Details: {text}")
+            break  # stop trying other recipients once the quota is exhausted
+
+        # Any other Twilio error should still fail the job
+        raise
